@@ -124,14 +124,12 @@ crowding_all =
   mutate(
     id = str_sub(geo_id, 10),
     county = str_extract(name, "(?<=,)[^,]+(?=,)")
-  ) 
-  
- #filter(county %in% c("Brooklyn County","Bronx County","Queens County","Richmond County","New York County"))
-  #filter(county %in% c("Brooklyn County","Bronx County","Queens County","Richmond County","New York County"))
+  ) |> 
+  filter(county %in% c(" Kings County"," Bronx County"," Queens County"," Richmond County"," New York County"))
   
 # can I make a map using geo id?
-# need to filter to keep only nyc counties, why does count go down to 0
 # my time plot cuts the year in half
+# time plot title is cut off
 ```
 
 Education Data
@@ -251,7 +249,8 @@ edu_all =
   mutate(
     id = str_sub(geo_id, 10),
     county = str_extract(name, "(?<=,)[^,]+(?=,)")
-  ) 
+  ) |> 
+  filter(county %in% c(" Kings County"," Bronx County"," Queens County"," Richmond County"," New York County"))
 ```
 
 Poverty Data
@@ -311,7 +310,8 @@ poverty_all =
   mutate(
     id = str_sub(geo_id, 10),
     county = str_extract(name, "(?<=,)[^,]+(?=,)")
-  ) 
+  ) |> 
+  filter(county %in% c(" Kings County"," Bronx County"," Queens County"," Richmond County"," New York County"))
 ```
 
 Vacancy Data
@@ -381,7 +381,8 @@ vacancy_all =
   mutate( 
     id = str_sub(geo_id, 10),
     county = str_extract(name, "(?<=,)[^,]+(?=,)")
-    )
+    ) |> 
+  filter(county %in% c(" Kings County"," Bronx County"," Queens County"," Richmond County"," New York County"))
 ```
 
 It should be noted that the dataset included information about other types of properties but were unoccupied such as rental properties, those listed for sale, properties sold but unoccupied, those designated for migrant workers, and residences that were used occasionally/seasonally/recreationally. The only variable considered in this analysis was vacant properties however it is likely that residences that go unoccupied for several months can become nests for the rat population, increasing sightings in those areas. A more thorough and in-depth analysis should include the other variables provided in the dataset. 
@@ -520,7 +521,5 @@ make distribution plots (if possible) otherwise do barcharts comparing the diffe
 
 explain how each of these variables may be related to rat sightings and increased presence, go back to the rat paper
 possibly compare to the rat distribution 
-
-analyze each plot
 
 upload everything to shared repository
