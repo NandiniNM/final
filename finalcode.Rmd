@@ -10,6 +10,9 @@ library(tidyverse)
 library(plotly)
 library(readxl)
 library(stringr)
+library(ggplot2)
+library(choroplethr)
+library(choroplethrMaps)
 
 knitr::opts_chunk$set(
 	echo = TRUE,
@@ -125,9 +128,10 @@ crowding_all =
     id = str_sub(geo_id, 10),
     county = str_extract(name, "(?<=,)[^,]+(?=,)")
   ) |> 
-  filter(county %in% c(" Kings County"," Bronx County"," Queens County"," Richmond County"," New York County"))
+  filter(county %in% c(" Kings County"," Bronx County"," Queens County"," Richmond County",
+                       " New York County"))
   
-# can I make a map using geo id?
+# can I make a map using geo id? how to fix chloropleth map
 # my time plot cuts the year in half
 # time plot title is cut off
 ```
@@ -250,7 +254,8 @@ edu_all =
     id = str_sub(geo_id, 10),
     county = str_extract(name, "(?<=,)[^,]+(?=,)")
   ) |> 
-  filter(county %in% c(" Kings County"," Bronx County"," Queens County"," Richmond County"," New York County"))
+  filter(county %in% c(" Kings County"," Bronx County"," Queens County"," Richmond County",
+                       " New York County"))
 ```
 
 Poverty Data
@@ -311,7 +316,8 @@ poverty_all =
     id = str_sub(geo_id, 10),
     county = str_extract(name, "(?<=,)[^,]+(?=,)")
   ) |> 
-  filter(county %in% c(" Kings County"," Bronx County"," Queens County"," Richmond County"," New York County"))
+  filter(county %in% c(" Kings County"," Bronx County"," Queens County"," Richmond County",
+                       " New York County"))
 ```
 
 Vacancy Data
@@ -382,7 +388,8 @@ vacancy_all =
     id = str_sub(geo_id, 10),
     county = str_extract(name, "(?<=,)[^,]+(?=,)")
     ) |> 
-  filter(county %in% c(" Kings County"," Bronx County"," Queens County"," Richmond County"," New York County"))
+  filter(county %in% c(" Kings County"," Bronx County"," Queens County"," Richmond County",
+                       " New York County"))
 ```
 
 It should be noted that the dataset included information about other types of properties but were unoccupied such as rental properties, those listed for sale, properties sold but unoccupied, those designated for migrant workers, and residences that were used occasionally/seasonally/recreationally. The only variable considered in this analysis was vacant properties however it is likely that residences that go unoccupied for several months can become nests for the rat population, increasing sightings in those areas. A more thorough and in-depth analysis should include the other variables provided in the dataset. 
@@ -391,7 +398,8 @@ In general, might be losing information with the variables chosen for analysis. 
 
 When importing data from 2018 and 2019, there were 4918 census tracts and when importing data from 2020 and 2021, there were 5411 census tracts. The datasets for each year were joined together by geography id to only retain census tracts that were consistent across the years. There may have been adjustments or redfining areas but that could affect analysis.
 
-Plots:
+Time Series Plots:
+-------------------
 
 ```{r}
 crowding_time = crowding_all |> 
@@ -408,13 +416,14 @@ crowding_time = crowding_all |>
       "y20" ~ 2020,
       "y21" ~ 2021
     )
-  ) |> 
+  ) |>
+  mutate(year = as.factor(year)) |> 
   filter(category == "more_than_1.5") |> 
   group_by(county,year) |> 
   summarise(mean = mean(count)) |> 
   plot_ly(x = ~year, y = ~mean, color = ~county, type = "scatter", mode = "lines", 
           colors = "viridis") |> 
-  layout(title = "Timeseries of Average Number of Housing Units with 1.51 or More Occupants/Room by Borough in NYC",
+  layout(title = "Timeseries of Average Number of Housing Units with 1.51 <br> or More Occupants/Room by Borough in NYC",
          plot_bgcolor = "e5ecf6", 
          xaxis = list(autotypenumbers = 'strict', title = 'Year'), 
          yaxis = list(title = 'Average Number of Housing Units'))
@@ -440,12 +449,13 @@ edu_time = edu_all |>
       "y21" ~ 2021
     )
   ) |> 
+  mutate(year = as.factor(year)) |> 
   filter(category == "hs_or_less") |> 
   group_by(county,year) |> 
   summarise(mean = mean(count)) |> 
   plot_ly(x = ~year, y = ~mean, color = ~county, type = "scatter", mode = "lines", 
           colors = "viridis") |> 
-  layout(title = "Timeseries of Average Number of Individuals with HS or less Education Level by Borough in NYC",
+  layout(title = "Timeseries of Average Number of Individuals with HS or less <br> Education Level by Borough in NYC",
          plot_bgcolor = "e5ecf6", 
          xaxis = list(autotypenumbers = 'strict', title = 'Year'), 
          yaxis = list(title = 'Average Number of Individuals'))
@@ -470,11 +480,12 @@ poverty_time = poverty_all |>
       "y21" ~ 2021
     )
   ) |> 
+  mutate(year = as.factor(year)) |> 
   group_by(county,year) |> 
   summarise(mean = mean(count)) |> 
   plot_ly(x = ~year, y = ~mean, color = ~county, type = "scatter", mode = "lines", 
           colors = "viridis") |> 
-  layout(title = "Timeseries of Average Number of Housing Units Below the Poverty Level by Borough in NYC",
+  layout(title = "Timeseries of Average Number of Housing Units Below <br> the Poverty Level by Borough in NYC",
          plot_bgcolor = "e5ecf6", 
          xaxis = list(autotypenumbers = 'strict', title = 'Year'), 
          yaxis = list(title = 'Average Number of Households Below Poverty Level'))
@@ -500,6 +511,7 @@ vacancy_time = vacancy_all |>
       "y21" ~ 2021
     )
   ) |> 
+  mutate(year = as.factor(year)) |> 
   group_by(county,year) |> 
   summarise(mean = mean(count)) |> 
   plot_ly(x = ~year, y = ~mean, color = ~county, type = "scatter", mode = "lines", 
@@ -514,10 +526,55 @@ vacancy_time
 
 Analysis
 
+Chloropleth Maps by Borough:
+----------------------------
 
+Crowding:
+
+Education:
+
+Poverty:
+
+Vacancy:
+
+```{r}
+vacancy_Manhattan = vacancy_all |>
+  pivot_longer(total_home_y18:prop_vacant_y21,
+               names_to = "vacancy",
+               values_to = "count") |> 
+  mutate(year     = str_sub(vacancy, -3),
+         category = str_sub(vacancy, end=-5)) |> 
+  mutate(
+    year = case_match(
+      year,
+      "y18" ~ 2018,
+      "y19" ~ 2019,
+      "y20" ~ 2020,
+      "y21" ~ 2021
+    )
+  ) |> 
+  filter(category == "prop_vacant",
+         year == "2021",
+         county == " New York County") |> 
+  rename(region = "id",
+         value  = "count") |> 
+  select(region, value, county) |> 
+  mutate_at(c("region"), as.numeric)
+
+Manhattan_vacancy_chl = tract_choropleth(vacancy_Manhattan,"new york", county_zoom = 36061,
+                                         title = "2021 Proportion of Vacant Properties in Manhattan by Census Tract",
+                                         legend = "Proportion")
+  
+```
+
+
+kings county (brooklyn) - 36047
+bronx - 36005
+queens - 36081
+richmond (staten island) - 36085
+new york (manhattan) - 36061
 
 ----------------------------------------
-make distribution plots (if possible) otherwise do barcharts comparing the different boroughs for variable of interest for 2021
 
 explain how each of these variables may be related to rat sightings and increased presence, go back to the rat paper
 possibly compare to the rat distribution 
